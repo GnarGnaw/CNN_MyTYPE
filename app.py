@@ -4,78 +4,105 @@ import os
 import pandas as pd
 from engine import Recommender
 
-st.set_page_config(page_title="Celeb-Match", layout="wide")
+st.set_page_config(page_title="Celeb-Match Pro", layout="wide")
 
-if 'rec' not in st.session_state:
-    st.session_state.rec = Recommender('attr.txt', 'landmarks.txt')
-    fname, fidx = st.session_state.rec.get_next()
-    st.session_state.current_img = fname
-    st.session_state.current_idx = fidx
-    st.session_state.match_traits = None  # To store debug info
+# Initialize the global dictionary of profiles if it doesn't exist
+if 'profiles' not in st.session_state:
+    st.session_state.profiles = {}
+
+# LANDING PAGE: Profile Selection
+if 'current_user' not in st.session_state:
+    st.title("📂 Welcome to Celeb-Match")
+    st.write("Please enter a name to start or resume your personalized recommendation test.")
+
+    user_input = st.text_input("User Profile Name:", placeholder="e.g., Alex, Tester_1")
+
+    if st.button("Start Swiping"):
+        if user_input.strip() != "":
+            st.session_state.current_user = user_input.strip()
+
+            # Create a new engine for this user if it's their first time
+            if st.session_state.current_user not in st.session_state.profiles:
+                with st.spinner("Initializing neural engine for new profile..."):
+                    st.session_state.profiles[st.session_state.current_user] = {
+                        'rec': Recommender('attr.txt', 'landmarks.txt'),
+                        'current_img': None,
+                        'current_idx': None,
+                        'match_traits': None,
+                        'match_score': 0
+                    }
+                # Pick the first image for the new user
+                rec = st.session_state.profiles[st.session_state.current_user]['rec']
+                fname, fidx = rec.get_next()
+                st.session_state.profiles[st.session_state.current_user]['current_img'] = fname
+                st.session_state.profiles[st.session_state.current_user]['current_idx'] = fidx
+
+            st.rerun()
+        else:
+            st.warning("Please enter a name.")
+    st.stop()  # Stop execution here until a user logs in
+
+# MAIN APP LOGIC (For the logged-in user)
+user = st.session_state.current_user
+u_data = st.session_state.profiles[user]
+rec = u_data['rec']
 
 main_col, side_col = st.columns([2, 1])
 
 with main_col:
-    st.title("🔥 Celeb-Match")
+    st.title(f"🔥 {user}'s Session")
+    if st.button("⬅️ Switch Profile"):
+        del st.session_state.current_user
+        st.rerun()
 
     _, img_container, _ = st.columns([1, 2, 1])
-    curr_img = str(st.session_state.current_img)
-    img_path = os.path.join('females', curr_img)
+    img_name = str(u_data['current_img'])
+    img_path = os.path.join('females', img_name)
 
     with img_container:
         if os.path.exists(img_path):
             st.image(Image.open(img_path), use_container_width=True)
-            # SHOW DEBUG INFO IF MATCHED
-            if st.session_state.match_traits:
-                st.success(f"✨ BEST MATCH FOUND!")
-                st.write("**Image Traits:** " + ", ".join(st.session_state.match_traits))
+            if u_data['match_traits']:
+                st.success(f"✨ BEST MATCH (Score: {u_data['match_score']:.2%})")
+                st.write("**Matched Traits:** " + ", ".join(u_data['match_traits']))
         else:
-            st.error(f"File not found: {img_path}")
+            st.error(f"Image {img_name} not found.")
 
     st.write("---")
     c1, c2, c3 = st.columns(3)
 
+
+    def refresh_view(fname, fidx, traits=None, score=0):
+        u_data['current_img'] = fname
+        u_data['current_idx'] = fidx
+        u_data['match_traits'] = traits
+        u_data['match_score'] = score
+
+
     with c1:
         if st.button("❌ DISLIKE", use_container_width=True):
-            st.session_state.match_traits = None  # Clear debug
-            st.session_state.rec.update_profile(st.session_state.current_idx, False)
-            st.session_state.current_img, st.session_state.current_idx = st.session_state.rec.get_next()
+            rec.update_profile(u_data['current_idx'], False)
+            refresh_view(*rec.get_next())
             st.rerun()
-
     with c2:
         if st.button("❤️ LIKE", use_container_width=True, type="primary"):
-            st.session_state.match_traits = None  # Clear debug
-            st.session_state.rec.update_profile(st.session_state.current_idx, True)
-            st.session_state.current_img, st.session_state.current_idx = st.session_state.rec.get_next()
+            rec.update_profile(u_data['current_idx'], True)
+            refresh_view(*rec.get_next())
+            st.rerun()
+    with c3:
+        if st.button("✨ MY MATCH", use_container_width=True):
+            fname, fidx, traits, score = rec.find_best_match()
+            refresh_view(fname, fidx, traits, score)
             st.rerun()
 
-        # ... inside the main_col block ...
-        with c3:
-            if st.button("✨ MY MATCH", use_container_width=True):
-                # Unpack the 4 values now returned by the engine
-                fname, fidx, traits, score = st.session_state.rec.find_best_match()
-                st.session_state.current_img = fname
-                st.session_state.current_idx = fidx
-                st.session_state.match_traits = traits
-                st.session_state.match_score = score  # New state variable
-                st.toast(f"Match Confidence: {score:.2%}")
-                st.rerun()
-
-        # Inside the image container display logic
-        if st.session_state.get('match_traits'):
-            score = st.session_state.get('match_score', 0)
-            st.success(f"✨ BEST MATCH FOUND (Confidence: {score:.2%})")
-            st.write("**Matched Traits:** " + ", ".join(st.session_state.match_traits))
-
 with side_col:
-    st.header("The AI's Opinion")
-    n_attr = len(st.session_state.rec.attr_names)
-    scores = st.session_state.rec.user_profile[:n_attr]
+    st.header("Profile Opinion")
+    st.metric("Likes for this User", rec.liked_count)
 
+    n_attr = len(rec.attr_names)
     traits_df = pd.DataFrame({
-        'Trait': st.session_state.rec.attr_names,
-        'Score': scores
+        'Trait': rec.attr_names,
+        'Score': rec.user_profile[:n_attr]
     }).sort_values(by='Score', ascending=False)
 
-    st.metric("Total Likes", st.session_state.rec.liked_count)
     st.dataframe(traits_df, height=500, hide_index=True)
