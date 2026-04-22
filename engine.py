@@ -61,18 +61,19 @@ class Recommender:
         return str(self.filenames[idx]), int(idx)
 
     def find_best_match(self):
-        """Finds the best match using full vector cosine similarity."""
+        """Scans the entire dataset for the global maximum similarity."""
         if self.liked_count == 0:
             return self.get_next()
 
-        # Calculate cosine similarity across all features (Attributes + Landmarks)
-        # user_profile is a vector of floats, features is a matrix of 1/-1 and floats
+        # Calculate similarity against the ENTIRE dataset
+        # This includes seen, unseen, liked, and disliked
         similarities = cosine_similarity([self.user_profile], self.features)[0]
 
+        # Find the absolute best index
         idx = int(np.argmax(similarities))
         best_score = similarities[idx]
 
-        # Extract attribute data for debug
+        # Debugging: Get traits
         n_attr = len(self.attr_names)
         match_attrs = self.features[idx][:n_attr]
         active_traits = [self.attr_names[i] for i, val in enumerate(match_attrs) if val == 1]
