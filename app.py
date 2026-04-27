@@ -13,7 +13,7 @@ st.set_page_config(page_title="Find My Type AI", layout="wide")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 if "all_images" not in st.session_state:
-    FEMALE_DIR = "img_align_celeba"
+    FEMALE_DIR = "females"
     images = sorted(glob.glob(os.path.join(FEMALE_DIR, "*.jpg")))
     random.shuffle(images)
     st.session_state.all_images = images
