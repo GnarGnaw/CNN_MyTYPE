@@ -1,0 +1,143 @@
+--- Starting Epoch 3 on cuda---
+Epoch 3 | Batch 0/2954 | Loss: 0.4596
+Epoch 3 | Batch 100/2954 | Loss: 0.4123
+Epoch 3 | Batch 200/2954 | Loss: 0.4046
+Epoch 3 | Batch 300/2954 | Loss: 0.3334
+Epoch 3 | Batch 400/2954 | Loss: 0.3974
+Epoch 3 | Batch 500/2954 | Loss: 0.3984
+Epoch 3 | Batch 600/2954 | Loss: 0.6634
+Epoch 3 | Batch 700/2954 | Loss: 1.1175
+Epoch 3 | Batch 800/2954 | Loss: 0.4002
+Epoch 3 | Batch 900/2954 | Loss: 0.4357
+Epoch 3 | Batch 1000/2954 | Loss: 0.4225
+Epoch 3 | Batch 1100/2954 | Loss: 0.4044
+Epoch 3 | Batch 1200/2954 | Loss: 0.4118
+Epoch 3 | Batch 1300/2954 | Loss: 0.4183
+Epoch 3 | Batch 1400/2954 | Loss: 0.3880
+Epoch 3 | Batch 1500/2954 | Loss: 0.3827
+Epoch 3 | Batch 1600/2954 | Loss: 0.4592
+Epoch 3 | Batch 1700/2954 | Loss: 0.3062
+Epoch 3 | Batch 1800/2954 | Loss: 0.3573
+Epoch 3 | Batch 1900/2954 | Loss: 0.3456
+Epoch 3 | Batch 2000/2954 | Loss: 0.6254
+Epoch 3 | Batch 2100/2954 | Loss: 0.4267
+Epoch 3 | Batch 2200/2954 | Loss: 0.4429
+Epoch 3 | Batch 2300/2954 | Loss: 0.4984
+Epoch 3 | Batch 2400/2954 | Loss: 0.3367
+Epoch 3 | Batch 2500/2954 | Loss: 0.3443
+Epoch 3 | Batch 2600/2954 | Loss: 0.3541
+Epoch 3 | Batch 2700/2954 | Loss: 0.3882
+Epoch 3 | Batch 2800/2954 | Loss: 0.4141
+Epoch 3 | Batch 2900/2954 | Loss: 0.3800
+Running Validation for Epoch 3...
+
+Epoch 3 Summary | Train Loss: 0.4197 | Val Loss: 0.3836
+Saved: uncropped_model_epoch_3.pth
+
+--- Starting Epoch 4 on cuda---
+Epoch 4 | Batch 0/2954 | Loss: 0.3935
+Epoch 4 | Batch 100/2954 | Loss: 0.3379
+Epoch 4 | Batch 200/2954 | Loss: 0.3414
+Epoch 4 | Batch 300/2954 | Loss: 0.3821
+Epoch 4 | Batch 400/2954 | Loss: 0.2986
+Epoch 4 | Batch 500/2954 | Loss: 0.4736
+Epoch 4 | Batch 600/2954 | Loss: 0.3014
+Epoch 4 | Batch 700/2954 | Loss: 0.3396
+Epoch 4 | Batch 800/2954 | Loss: 0.3246
+Epoch 4 | Batch 900/2954 | Loss: 0.3511
+Epoch 4 | Batch 1000/2954 | Loss: 0.2883
+Epoch 4 | Batch 1100/2954 | Loss: 0.4134
+Epoch 4 | Batch 1200/2954 | Loss: 0.3657
+Epoch 4 | Batch 1300/2954 | Loss: 0.3246
+Epoch 4 | Batch 1400/2954 | Loss: 0.3453
+Epoch 4 | Batch 1500/2954 | Loss: 0.2925
+Epoch 4 | Batch 1600/2954 | Loss: 0.3654
+Epoch 4 | Batch 1700/2954 | Loss: 0.3042
+Epoch 4 | Batch 1800/2954 | Loss: 0.3457
+Epoch 4 | Batch 1900/2954 | Loss: 0.3608
+Epoch 4 | Batch 2000/2954 | Loss: 0.3190
+Epoch 4 | Batch 2100/2954 | Loss: 0.2947
+Epoch 4 | Batch 2200/2954 | Loss: 0.3129
+Epoch 4 | Batch 2300/2954 | Loss: 0.3237
+Epoch 4 | Batch 2400/2954 | Loss: 0.3254
+Epoch 4 | Batch 2500/2954 | Loss: 0.3889
+Epoch 4 | Batch 2600/2954 | Loss: 0.3773
+Epoch 4 | Batch 2700/2954 | Loss: 0.2913
+Epoch 4 | Batch 2800/2954 | Loss: 0.3675
+Epoch 4 | Batch 2900/2954 | Loss: 0.5057
+Running Validation for Epoch 4...
+
+Epoch 4 Summary | Train Loss: 0.3641 | Val Loss: 0.4304
+Saved: uncropped_model_epoch_4.pth
+
+--- Starting Epoch 5 on cuda---
+Epoch 5 | Batch 0/2954 | Loss: 0.3706
+Epoch 5 | Batch 100/2954 | Loss: 0.3285
+Epoch 5 | Batch 200/2954 | Loss: 0.3655
+Epoch 5 | Batch 300/2954 | Loss: 0.3359
+Epoch 5 | Batch 400/2954 | Loss: 0.2994
+Epoch 5 | Batch 500/2954 | Loss: 0.3034
+Epoch 5 | Batch 600/2954 | Loss: 0.3416
+Epoch 5 | Batch 700/2954 | Loss: 0.2967
+Epoch 5 | Batch 800/2954 | Loss: 0.3341
+Epoch 5 | Batch 900/2954 | Loss: 0.3201
+Epoch 5 | Batch 1000/2954 | Loss: 0.3250
+Epoch 5 | Batch 1100/2954 | Loss: 0.3301
+Epoch 5 | Batch 1200/2954 | Loss: 0.3083
+Epoch 5 | Batch 1300/2954 | Loss: 0.3236
+Epoch 5 | Batch 1400/2954 | Loss: 0.3130
+Epoch 5 | Batch 1500/2954 | Loss: 0.3125
+Epoch 5 | Batch 1600/2954 | Loss: 0.3231
+Epoch 5 | Batch 1700/2954 | Loss: 0.2714
+Epoch 5 | Batch 1800/2954 | Loss: 0.3060
+Epoch 5 | Batch 1900/2954 | Loss: 0.3301
+Epoch 5 | Batch 2000/2954 | Loss: 0.3172
+Epoch 5 | Batch 2100/2954 | Loss: 0.3092
+Epoch 5 | Batch 2200/2954 | Loss: 0.3101
+Epoch 5 | Batch 2300/2954 | Loss: 0.2817
+Epoch 5 | Batch 2400/2954 | Loss: 0.2974
+Epoch 5 | Batch 2500/2954 | Loss: 0.3034
+Epoch 5 | Batch 2600/2954 | Loss: 0.2706
+Epoch 5 | Batch 2700/2954 | Loss: 0.2864
+Epoch 5 | Batch 2800/2954 | Loss: 0.3037
+Epoch 5 | Batch 2900/2954 | Loss: 0.3944
+Running Validation for Epoch 5...
+
+Epoch 5 Summary | Train Loss: 0.3255 | Val Loss: 0.3306
+Saved: uncropped_model_epoch_5.pth
+
+--- Starting Epoch 6 on cuda---
+Epoch 6 | Batch 0/2954 | Loss: 0.2870
+Epoch 6 | Batch 100/2954 | Loss: 0.3278
+Epoch 6 | Batch 200/2954 | Loss: 0.3008
+Epoch 6 | Batch 300/2954 | Loss: 0.3222
+Epoch 6 | Batch 400/2954 | Loss: 0.2972
+Epoch 6 | Batch 500/2954 | Loss: 0.2798
+Epoch 6 | Batch 600/2954 | Loss: 0.2713
+Epoch 6 | Batch 700/2954 | Loss: 0.2809
+Epoch 6 | Batch 800/2954 | Loss: 0.2787
+Epoch 6 | Batch 900/2954 | Loss: 0.2901
+Epoch 6 | Batch 1000/2954 | Loss: 0.3063
+Epoch 6 | Batch 1100/2954 | Loss: 0.3233
+Epoch 6 | Batch 1200/2954 | Loss: 0.2785
+Epoch 6 | Batch 1300/2954 | Loss: 0.3165
+Epoch 6 | Batch 1400/2954 | Loss: 0.3032
+Epoch 6 | Batch 1500/2954 | Loss: 0.2979
+Epoch 6 | Batch 1600/2954 | Loss: 0.3267
+Epoch 6 | Batch 1700/2954 | Loss: 0.2988
+Epoch 6 | Batch 1800/2954 | Loss: 0.2917
+Epoch 6 | Batch 1900/2954 | Loss: 0.2984
+Epoch 6 | Batch 2000/2954 | Loss: 0.2840
+Epoch 6 | Batch 2100/2954 | Loss: 0.2891
+Epoch 6 | Batch 2200/2954 | Loss: 0.2544
+Epoch 6 | Batch 2300/2954 | Loss: 0.2997
+Epoch 6 | Batch 2400/2954 | Loss: 0.2877
+Epoch 6 | Batch 2500/2954 | Loss: 0.3119
+Epoch 6 | Batch 2600/2954 | Loss: 0.2739
+Epoch 6 | Batch 2700/2954 | Loss: 0.2793
+Epoch 6 | Batch 2800/2954 | Loss: 0.2823
+Epoch 6 | Batch 2900/2954 | Loss: 0.3505
+Running Validation for Epoch 6...
+
+Epoch 6 Summary | Train Loss: 0.2948 | Val Loss: 0.3708
+Saved: uncropped_model_epoch_6.pth

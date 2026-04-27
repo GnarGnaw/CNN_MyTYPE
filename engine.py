@@ -89,3 +89,17 @@ class Recommender:
             self.liked_count += 1
         else:
             self.user_profile = self.user_profile - alpha * (target - self.user_profile)
+
+    def search_by_attributes(self, selected_traits):
+        if not selected_traits:
+            return self.filenames[:20]  # Default to first 20 if nothing selected
+
+        # Create a boolean mask starting with all True
+        mask = np.ones(len(self.filenames), dtype=bool)
+
+        for trait in selected_traits:
+            trait_idx = self.attr_names.index(trait)
+            # In CelebA, 1 is True, -1 is False
+            mask = mask & (self.features[:, trait_idx] == 1)
+
+        return self.filenames[mask]
