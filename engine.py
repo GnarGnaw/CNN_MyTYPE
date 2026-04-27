@@ -1,105 +1,41 @@
-import pandas as pd
+import torch
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-import io
 
 
-class Recommender:
-    def __init__(self, attr_path, landmark_path):
-        self.attr_df = self._load_celeba_style_file(attr_path)
-        self.land_df = self._load_celeba_style_file(landmark_path)
+class MatchEngine:
+    def __init__(self):
+        # We track the 'embeddings' (attributes + landmarks) of people you like
+        self.liked_embeddings = []
+        self.all_embeddings = {}  # {image_id: vector}
 
-        if self.attr_df is None:
-            self.filenames = []
-            return
+    def add_to_database(self, image_id, attr_probs, landmarks):
+        # Flatten landmarks and combine with attributes to create a 'Face Vector'
+        vector = np.concatenate([attr_probs, landmarks.flatten()])
+        self.all_embeddings[image_id] = vector
 
-        self.filenames = self.attr_df.iloc[:, 0].values
-        self.land_df = self.land_df[self.land_df.iloc[:, 0].isin(self.filenames)]
-
-        attr_values = self.attr_df.iloc[:, 1:].values
-        land_values = self.land_df.iloc[:, 1:].values / 250.0
-
-        self.features = np.hstack([attr_values, land_values])
-        self.attr_names = self.attr_df.columns[1:].tolist()
-
-        self.user_profile = np.zeros(self.features.shape[1])
-        self.liked_count = 0
-        self.viewed_indices = set()
-
-    def _load_celeba_style_file(self, path):
-        try:
-            with open(path, 'r') as f:
-                lines = f.readlines()
-            headers = lines[1].strip().split()
-            data_lines = [l.strip() for l in lines[2:] if '.jpg' in l.lower()]
-            if not data_lines: return None
-            return pd.read_csv(io.StringIO('\n'.join(data_lines)), sep=r'\s+', names=['image_id'] + headers,
-                               engine='python')
-        except:
-            return None
-
-    def get_next(self):
-        n_files = len(self.filenames)
-        if n_files == 0: return "no_data", -1
-
-        # Logic to strictly avoid duplicates
-        available_indices = list(set(range(n_files)) - self.viewed_indices)
-        if not available_indices:
-            self.viewed_indices.clear()  # Reset if we run out of photos
-            available_indices = list(range(n_files))
-
-        if self.liked_count < 3:
-            idx = np.random.choice(available_indices)
-        else:
-            similarities = cosine_similarity([self.user_profile], self.features)[0]
-            # Mask out viewed indices
-            for v_idx in self.viewed_indices:
-                similarities[v_idx] = -2.0
-            idx = int(np.argmax(similarities))
-
-        self.viewed_indices.add(idx)
-        return str(self.filenames[idx]), int(idx)
+    def record_like(self, image_id):
+        if image_id in self.all_embeddings:
+            self.liked_embeddings.append(self.all_embeddings[image_id])
 
     def find_best_match(self):
-        """Scans the entire dataset for the global maximum similarity."""
-        if self.liked_count == 0:
-            return self.get_next()
+        if not self.liked_embeddings:
+            return None
 
-        # Calculate similarity against the ENTIRE dataset
-        # This includes seen, unseen, liked, and disliked
-        similarities = cosine_similarity([self.user_profile], self.features)[0]
+        # Create 'My Type' average vector
+        target_vector = np.mean(self.liked_embeddings, axis=0).reshape(1, -1)
 
-        # Find the absolute best index
-        idx = int(np.argmax(similarities))
-        best_score = similarities[idx]
+        best_score = -1
+        best_match = None
 
-        # Debugging: Get traits
-        n_attr = len(self.attr_names)
-        match_attrs = self.features[idx][:n_attr]
-        active_traits = [self.attr_names[i] for i, val in enumerate(match_attrs) if val == 1]
+        for img_id, vector in self.all_embeddings.items():
+            # Skip if you already liked them
+            if any(np.array_equal(vector, liked) for liked in self.liked_embeddings):
+                continue
 
-        return str(self.filenames[idx]), idx, active_traits, best_score
+            score = cosine_similarity(target_vector, vector.reshape(1, -1))[0][0]
+            if score > best_score:
+                best_score = score
+                best_match = img_id
 
-    def update_profile(self, idx, liked):
-        if idx == -1: return
-        alpha = 0.4 if liked else 0.2
-        target = self.features[idx]
-        if liked:
-            self.user_profile = self.user_profile + alpha * (target - self.user_profile)
-            self.liked_count += 1
-        else:
-            self.user_profile = self.user_profile - alpha * (target - self.user_profile)
-
-    def search_by_attributes(self, selected_traits):
-        if not selected_traits:
-            return self.filenames[:20]  # Default to first 20 if nothing selected
-
-        # Create a boolean mask starting with all True
-        mask = np.ones(len(self.filenames), dtype=bool)
-
-        for trait in selected_traits:
-            trait_idx = self.attr_names.index(trait)
-            # In CelebA, 1 is True, -1 is False
-            mask = mask & (self.features[:, trait_idx] == 1)
-
-        return self.filenames[mask]
+        return best_match, best_score
