@@ -1,7 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.venv/Lib" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv/Scripts" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv/etc" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv/share" />
+      <excludeFolder url="file://$MODULE_DIR$/ZIP" />
+      <excludeFolder url="file://$MODULE_DIR$/debug_resized" />
+      <excludeFolder url="file://$MODULE_DIR$/females_uncropped" />
+      <excludeFolder url="file://$MODULE_DIR$/img_celeba" />
+      <excludeFolder url="file://$MODULE_DIR$/img_celeba.7z" />
+      <excludeFolder url="file://$MODULE_DIR$/test_results" />
+      <excludeFolder url="file://$MODULE_DIR$/test_results_final" />
+      <excludeFolder url="file://$MODULE_DIR$/test_results_uncropped" />
+      <excludeFolder url="file://$MODULE_DIR$/tests" />
+      <excludeFolder url="file://$MODULE_DIR$/venv_gpu/Include" />
+      <excludeFolder url="file://$MODULE_DIR$/venv_gpu/Lib" />
+      <excludeFolder url="file://$MODULE_DIR$/venv_gpu/Scripts" />
+      <excludeFolder url="file://$MODULE_DIR$/venv_gpu/etc" />
+      <excludeFolder url="file://$MODULE_DIR$/venv_gpu/share" />
+    </content>
     <orderEntry type="jdk" jdkName="Python 3.13" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
