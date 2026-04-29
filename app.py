@@ -27,7 +27,7 @@ if "liked_vectors" not in st.session_state:
 @st.cache_resource
 def load_model():
     model = CelebA_CNN().to(device)
-    checkpoint = torch.load("uncropped_model_epoch_6.pth", map_location=device)
+    checkpoint = torch.load("full_model_epoch_6.pth", map_location=device)
     model.load_state_dict(checkpoint)
     model.eval()
     return model
