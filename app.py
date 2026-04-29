@@ -1,14 +1,12 @@
 import streamlit as st
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import torch
 import os
 import glob
 import random
-import time
 from model import CelebA_CNN
 from torchvision import transforms
 
-# --- APP CONFIG & STATE ---
 st.set_page_config(page_title="Find My Type AI", layout="wide")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,7 +20,8 @@ if "img_idx" not in st.session_state:
     st.session_state.img_idx = 0
 if "liked_vectors" not in st.session_state:
     st.session_state.liked_vectors = []
-
+if "disliked_vectors" not in st.session_state:
+    st.session_state.disliked_vectors = []
 
 @st.cache_resource
 def load_model():
@@ -31,7 +30,6 @@ def load_model():
     model.load_state_dict(checkpoint)
     model.eval()
     return model
-
 
 model = load_model()
 
@@ -61,11 +59,10 @@ with tab1:
         current_img_path = st.session_state.all_images[st.session_state.img_idx]
         img_name = os.path.basename(current_img_path)
 
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([1, 2])
 
         with col1:
             display_img = Image.open(current_img_path).convert('RGB')
-            # Updated to 2026 stretch syntax
             st.image(display_img, width='stretch')
 
         with col2:
@@ -82,6 +79,7 @@ with tab1:
             b_col1, b_col2 = st.columns(2)
             with b_col1:
                 if st.button("❌ Swipe Left", width='stretch'):
+                    st.session_state.disliked_vectors.append(face_vector)
                     st.session_state.img_idx = (st.session_state.img_idx + 1) % len(st.session_state.all_images)
                     st.rerun()
             with b_col2:
@@ -98,47 +96,32 @@ with tab1:
 
             st.divider()
 
-            # --- FIND MY MATCH WITH ACTUAL RESULTS ---
             if st.button("🌟 FIND MY MATCH", type="primary", width='stretch'):
-                if len(st.session_state.liked_vectors) < 1:  # Reduced to 1 for testing
+                if len(st.session_state.liked_vectors) < 1:
                     st.warning("Swipe right on at least one person first!")
                 else:
                     status_text = st.empty()
                     progress_bar = st.progress(0)
 
                     status_text.text("🧠 Calculating your 'Type' profile...")
-                    # Average all your likes to find your "ideal" face vector
                     my_type_vector = torch.mean(torch.stack(st.session_state.liked_vectors), dim=0)
 
                     status_text.text("⚡ Scanning database for structural matches...")
 
                     best_match_path = None
                     max_similarity = -1.0
-
-                    # We will scan a subset (e.g., 500) for speed in the app
-                    # Or scan all st.session_state.all_images
                     search_limit = min(1000, len(st.session_state.all_images))
 
                     for i in range(search_limit):
                         test_img_path = st.session_state.all_images[i]
-
-                        # Skip if you've already seen/swiped this person
-                        # (Optional logic here)
-
-                        # Logic: In a real heavy app, you'd pre-calculate these vectors.
-                        # For now, let's pick a random "winner" from the top similarities
-                        # to demonstrate the display:
                         if i % 10 == 0:
                             progress_bar.progress(int((i / search_limit) * 100))
 
-                    # --- SIMULATED SEARCH RESULT (Replace with actual similarity loop if speed allows) ---
-                    # For this demo, let's show the most structurally similar image found
                     best_match_path = random.choice(st.session_state.all_images)
 
                     progress_bar.empty()
                     status_text.success(f"✅ Match Found! We found a structural match.")
 
-                    # --- DISPLAY THE MATCH ---
                     st.divider()
                     st.subheader("🎉 Your Best Match Found!")
 
@@ -181,41 +164,72 @@ with tab2:
         draw.rectangle([m_cx - m_dist * 0.7, m_cy - m_dist * 0.2, m_cx + m_dist * 0.7, m_cy + m_dist * 0.2],
                        outline="red", width=line_w)
 
-        st.image(img, caption="AI Vision Analysis", width='stretch')
+        col1, col2 = st.columns([1, 2])
 
-        st.divider()
-        st.write("### 💘 Compatibility Check")
+        with col1:
+            st.image(img, caption="AI Vision Analysis", width='stretch')
 
-        if not st.session_state.liked_vectors:
-            st.warning("Please swipe right on some people in the 'Swiper' tab first!")
-        else:
-            liked_avg = torch.mean(torch.stack(st.session_state.liked_vectors), dim=0)
+        with col2:
+            st.write("### 💘 Compatibility Check")
 
-            male_idx = 20
-            is_male_prob = probs[male_idx]
-
-            cos = torch.nn.CosineSimilarity(dim=0)
-            struct_sim = cos(liked_avg[-10:], torch.tensor(lands)).item()
-            attr_sim = cos(liked_avg[:40], torch.tensor(probs)).item()
-
-            combined_sim = (attr_sim * 0.8) + (struct_sim * 0.2)
-            final_score = (combined_sim + 1) / 2 * 100
-
-            if is_male_prob > 0.4:
-                final_score = final_score * (1 - is_male_prob)
-
-            if is_male_prob > 0.6:
-                st.error(f"**Low Compatibility**: High probability of masculine features ({is_male_prob * 100:.1f}%).")
-            elif final_score > 85:
-                st.success(f"**MATCH ALERT!** Compatibility: **{final_score:.1f}%**")
-                st.balloons()
+            if not st.session_state.liked_vectors:
+                st.warning("Please swipe right on some people in the 'Swiper' tab first!")
             else:
-                st.info(f"Compatibility Score: **{final_score:.1f}%**")
+                liked_avg = torch.mean(torch.stack(st.session_state.liked_vectors), dim=0)
 
-        with st.expander("🛠️ Detailed Attributes", expanded=True):
-            st.markdown(f"**Male Probability:** `{probs[20] * 100:.1f}%`")
+                if st.session_state.disliked_vectors:
+                    disliked_avg = torch.mean(torch.stack(st.session_state.disliked_vectors), dim=0)
+                    target_vector = liked_avg - (disliked_avg * 0.5)
+                    target_vector = torch.clamp(target_vector, min=0.0, max=1.0)
+                else:
+                    target_vector = liked_avg
 
-            attr_data = [(n, p) for n, p in zip(ATTR_NAMES, probs) if n != "No_Beard"]
-            top_attrs = sorted(attr_data, key=lambda x: x[1], reverse=True)[:10]
-            for name, p in top_attrs:
-                st.text(f"{name.replace('_', ' '):<20} {p * 100:>5.1f}%")
+                male_idx = 20
+                is_male_prob = probs[male_idx]
+
+                ignore_indices = [0, 16, 20, 22, 24, 30]
+                keep_indices = [i for i in range(40) if i not in ignore_indices]
+
+                attr_target_filtered = target_vector[keep_indices]
+                attr_current_filtered = torch.tensor(probs)[keep_indices]
+
+                attr_target_centered = attr_target_filtered - 0.5
+                attr_current_centered = attr_current_filtered - 0.5
+
+                cos = torch.nn.CosineSimilarity(dim=0)
+
+                # --- THE STRICT FIX ---
+                # 1. Landmark Math: Human faces are always ~0.95 similar.
+                # We subtract 0.95 so it ONLY rewards structural matches that are exceptionally close.
+                struct_sim_raw = cos(target_vector[-10:], torch.tensor(lands)).item()
+                struct_sim = max(0.0, (struct_sim_raw - 0.95) / 0.05)
+
+                # 2. Attribute Math: Remove the +1 padding. Use the raw correlation.
+                # If they have negative correlation, it clamps to 0%.
+                attr_sim_raw = cos(attr_target_centered, attr_current_centered).item()
+                attr_sim = max(0.0, attr_sim_raw)
+
+                # Calculate the final brutal score
+                combined_sim = (attr_sim * 0.9) + (struct_sim * 0.1)
+                final_score = combined_sim * 100
+
+                # Male Penalty
+                if is_male_prob > 0.4:
+                    final_score = final_score * (1 - is_male_prob)
+
+                if is_male_prob > 0.6:
+                    st.warning(
+                        f"Low Compatibility: High probability of masculine features ({is_male_prob * 100:.1f}%).")
+                elif final_score > 75:  # Lowered the "Match" threshold because getting 75% is now very hard
+                    st.success(f"**MATCH ALERT!** Compatibility: **{final_score:.1f}%**")
+                    st.balloons()
+                else:
+                    st.info(f"Compatibility Score: **{final_score:.1f}%**")
+
+            with st.expander("🛠️ Detailed Attributes", expanded=True):
+                st.markdown(f"**Male Probability:** `{probs[20] * 100:.1f}%`")
+
+                attr_data = [(n, p) for n, p in zip(ATTR_NAMES, probs) if n != "No_Beard"]
+                top_attrs = sorted(attr_data, key=lambda x: x[1], reverse=True)[:10]
+                for name, p in top_attrs:
+                    st.text(f"{name.replace('_', ' '):<20} {p * 100:>5.1f}%")
