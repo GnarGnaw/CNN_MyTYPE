@@ -36,3 +36,10 @@ uncropped_model_epoch_4.pth
 uncropped_model_epoch_5.pth
 README.txt
 output_pillow.jpg
+/full_model_epoch_2.pth
+/full_model_epoch_1.pth
+/full_model_epoch_3.pth
+/full_model_epoch_4.pth
+/full_model_epoch_5.pth
+/uncropped_model_epoch_7.pth
+/uncropped_model_epoch_8.pth
