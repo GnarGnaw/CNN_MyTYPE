@@ -177,8 +177,11 @@ with tab1:
                     st.divider()
                     st.subheader(f"🎉 Your Best Match Found! ({highest_score:.1f}% Compatibility)")
 
-                    match_img = Image.open(best_match_path).convert('RGB')
-                    st.image(match_img, caption=f"Top Match: {os.path.basename(best_match_path)}", width='stretch')
+                    safe_filename = os.path.basename(best_match_path)
+                    safe_path = os.path.join("females", safe_filename)
+
+                    match_img = Image.open(safe_path).convert('RGB')
+                    st.image(match_img, caption=f"Top Match: {safe_filename}", width='stretch')
                     st.balloons()
 
 with tab2:
