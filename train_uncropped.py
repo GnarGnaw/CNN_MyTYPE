@@ -21,7 +21,6 @@ class CelebADataset(Dataset):
             lines = f.readlines()
             land_names = ['image_id'] + lines[1].strip().split()
 
-        # Load official partitions [cite: 10, 24]
         partition_df = pd.read_csv(partition_path, sep=r'\s+', skiprows=0, names=['image_id', 'status'],
                                    engine='python')
 
@@ -52,10 +51,8 @@ class CelebADataset(Dataset):
         labels = self.attr_df.iloc[idx, 1:].values.astype(float)
         labels = (labels + 1) / 2
 
-        # Landmark locations based on in-the-wild coordinates [cite: 18]
         landmarks = self.land_df.iloc[idx, 1:].values.astype(float)
 
-        # Normalize to percentages of full photo for "In-The-Wild" training
         landmarks[0::2] /= orig_w
         landmarks[1::2] /= orig_h
 
@@ -70,40 +67,35 @@ if __name__ == "__main__":
     model = CelebA_CNN().to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-    # 1. Resumption Logic
     start_epoch = 0
-    checkpoint_files = glob.glob("uncropped_model_epoch_*.pth")
+    checkpoint_files = glob.glob("graphing_model_epoch_*.pth")
     if checkpoint_files:
         epochs_found = [int(re.search(r'epoch_(\d+)', f).group(1)) for f in checkpoint_files]
         last_epoch = max(epochs_found)
-        checkpoint_path = f"uncropped_model_epoch_{last_epoch}.pth"
+        checkpoint_path = f"graphing_model_epoch_{last_epoch}.pth"
         print(f"Found checkpoint: {checkpoint_path}. Resuming from Epoch {last_epoch + 1} on {device}")
         model.load_state_dict(torch.load(checkpoint_path, map_location=device))
         start_epoch = last_epoch
     else:
         print("No checkpoints found. Starting training from scratch.")
 
-    # 2. Setup Data
     transform = transforms.Compose([
-        transforms.Resize((218, 178)),  # Resize according to align&cropped standards [cite: 12]
+        transforms.Resize((218, 178)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    # Load official partitions [cite: 10, 24]
     train_dataset = CelebADataset('attr.txt', 'landmarks.txt', 'list_eval_partition.txt', 'females_uncropped',
                                   split='train', transform=transform)
     val_dataset = CelebADataset('attr.txt', 'landmarks.txt', 'list_eval_partition.txt', 'females_uncropped',
                                 split='val', transform=transform)
 
-    # Create BOTH loaders here
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=0)
 
     criterion_attr = nn.BCEWithLogitsLoss()
     criterion_land = nn.MSELoss()
 
-    # 3. Training Loop
     total_epochs = 20
     for epoch in range(start_epoch, total_epochs):
         model.train()
@@ -127,7 +119,6 @@ if __name__ == "__main__":
             if i % 100 == 0:
                 print(f"Epoch {epoch + 1} | Batch {i}/{len(train_loader)} | Loss: {total_loss.item():.4f}")
 
-        # 4. Validation Loop
         model.eval()
         val_loss = 0.0
         print(f"Running Validation for Epoch {epoch + 1}...")
@@ -145,7 +136,6 @@ if __name__ == "__main__":
         avg_val = val_loss / len(val_loader)
         print(f"\nEpoch {epoch + 1} Summary | Train Loss: {avg_train:.4f} | Val Loss: {avg_val:.4f}")
 
-        # Save Checkpoint
-        save_name = f"uncropped_model_epoch_{epoch + 1}.pth"
+        save_name = f"graphing_model_epoch_{epoch + 1}.pth"
         torch.save(model.state_dict(), save_name)
         print(f"Saved: {save_name}")

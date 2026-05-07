@@ -210,7 +210,7 @@ with tab2:
                 attr_sim = max(0.0, attr_sim_raw)
 
                 # Calculate the final brutal score
-                combined_sim = (attr_sim * 0.9) + (struct_sim * 0.1)
+                combined_sim = (attr_sim * 0.99) + (struct_sim * 0.01)
                 final_score = combined_sim * 100
 
                 # Male Penalty
@@ -220,7 +220,7 @@ with tab2:
                 if is_male_prob > 0.6:
                     st.warning(
                         f"Low Compatibility: High probability of masculine features ({is_male_prob * 100:.1f}%).")
-                elif final_score > 75:  # Lowered the "Match" threshold because getting 75% is now very hard
+                elif final_score > 90:
                     st.success(f"**MATCH ALERT!** Compatibility: **{final_score:.1f}%**")
                     st.balloons()
                 else:

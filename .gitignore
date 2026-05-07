@@ -43,3 +43,7 @@ output_pillow.jpg
 /full_model_epoch_5.pth
 /uncropped_model_epoch_7.pth
 /uncropped_model_epoch_8.pth
+/data_train.txt
+/graphing_model_epoch_1.pth
+/graphing_model_epoch_2.pth
+/graphing_model_epoch_3.pth
