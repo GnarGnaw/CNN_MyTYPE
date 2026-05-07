@@ -115,7 +115,6 @@ with tab1:
 
                     status_text.text("🧠 Calculating your target 'Type' profile...")
 
-                    # 1. Build the Target Profile
                     liked_avg = torch.mean(torch.stack(st.session_state.liked_vectors), dim=0)
 
                     if st.session_state.disliked_vectors:
@@ -125,7 +124,6 @@ with tab1:
                     else:
                         target_vector = liked_avg
 
-                    # Prepare the masks and centering for the target vector
                     ignore_indices = [0, 16, 20, 22, 24, 30]
                     keep_indices = [i for i in range(40) if i not in ignore_indices]
 
@@ -141,13 +139,10 @@ with tab1:
 
                     total_items = len(db)
 
-                    # 2. The Fast Search Loop
                     for idx, (path, vector) in enumerate(db.items()):
-                        # Update progress bar
                         if idx % (max(1, total_items // 100)) == 0:
                             progress_bar.progress(min(100, int((idx / total_items) * 100)))
 
-                        # Apply the Strict Math Logic to every profile
                         is_male_prob = vector[20].item()
 
                         attr_current_filtered = vector[keep_indices]
@@ -165,23 +160,21 @@ with tab1:
                         if is_male_prob > 0.4:
                             final_score = final_score * (1 - is_male_prob)
 
-                        # Keep the absolute highest score
                         if final_score > highest_score:
                             highest_score = final_score
                             best_match_path = path
 
-                    # 3. Render the Results
                     progress_bar.empty()
                     status_text.success(f"✅ Match Found!")
 
                     st.divider()
                     st.subheader(f"🎉 Your Best Match Found! ({highest_score:.1f}% Compatibility)")
 
-                    safe_filename = os.path.basename(best_match_path)
-                    safe_path = os.path.join("females", safe_filename)
+                    clean_filename = best_match_path.replace("\\", "/").split("/")[-1]
+                    safe_path = os.path.join("females", clean_filename)
 
                     match_img = Image.open(safe_path).convert('RGB')
-                    st.image(match_img, caption=f"Top Match: {safe_filename}", width='stretch')
+                    st.image(match_img, caption=f"Top Match: {clean_filename}", width='stretch')
                     st.balloons()
 
 with tab2:
