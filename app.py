@@ -33,6 +33,14 @@ def load_model():
 
 model = load_model()
 
+@st.cache_resource
+def load_database():
+    if os.path.exists("face_database.pt"):
+        return torch.load("face_database.pt")
+    return {}
+
+db = load_database()
+
 ATTR_NAMES = [
     "5_o_Clock_Shadow", "Arched_Eyebrows", "Attractive", "Bags_Under_Eyes", "Bald",
     "Bangs", "Big_Lips", "Big_Nose", "Black_Hair", "Blond_Hair",
@@ -99,36 +107,78 @@ with tab1:
             if st.button("🌟 FIND MY MATCH", type="primary", width='stretch'):
                 if len(st.session_state.liked_vectors) < 1:
                     st.warning("Swipe right on at least one person first!")
+                elif not db:
+                    st.error("Database not found! Please run build_db.py first.")
                 else:
                     status_text = st.empty()
                     progress_bar = st.progress(0)
 
-                    status_text.text("🧠 Calculating your 'Type' profile...")
-                    my_type_vector = torch.mean(torch.stack(st.session_state.liked_vectors), dim=0)
+                    status_text.text("🧠 Calculating your target 'Type' profile...")
 
-                    status_text.text("⚡ Scanning database for structural matches...")
+                    # 1. Build the Target Profile
+                    liked_avg = torch.mean(torch.stack(st.session_state.liked_vectors), dim=0)
+
+                    if st.session_state.disliked_vectors:
+                        disliked_avg = torch.mean(torch.stack(st.session_state.disliked_vectors), dim=0)
+                        target_vector = liked_avg - (disliked_avg * 0.5)
+                        target_vector = torch.clamp(target_vector, min=0.0, max=1.0)
+                    else:
+                        target_vector = liked_avg
+
+                    # Prepare the masks and centering for the target vector
+                    ignore_indices = [0, 16, 20, 22, 24, 30]
+                    keep_indices = [i for i in range(40) if i not in ignore_indices]
+
+                    attr_target_filtered = target_vector[keep_indices]
+                    attr_target_centered = attr_target_filtered - 0.5
+                    target_lands = target_vector[-10:]
+
+                    status_text.text("⚡ Scanning database for your absolute perfect match...")
 
                     best_match_path = None
-                    max_similarity = -1.0
-                    search_limit = min(1000, len(st.session_state.all_images))
+                    highest_score = -1.0
+                    cos = torch.nn.CosineSimilarity(dim=0)
 
-                    for i in range(search_limit):
-                        test_img_path = st.session_state.all_images[i]
-                        if i % 10 == 0:
-                            progress_bar.progress(int((i / search_limit) * 100))
+                    total_items = len(db)
 
-                    best_match_path = random.choice(st.session_state.all_images)
+                    # 2. The Fast Search Loop
+                    for idx, (path, vector) in enumerate(db.items()):
+                        # Update progress bar
+                        if idx % (max(1, total_items // 100)) == 0:
+                            progress_bar.progress(min(100, int((idx / total_items) * 100)))
 
+                        # Apply the Strict Math Logic to every profile
+                        is_male_prob = vector[20].item()
+
+                        attr_current_filtered = vector[keep_indices]
+                        attr_current_centered = attr_current_filtered - 0.5
+
+                        struct_sim_raw = cos(target_lands, vector[-10:]).item()
+                        struct_sim = max(0.0, (struct_sim_raw - 0.95) / 0.05)
+
+                        attr_sim_raw = cos(attr_target_centered, attr_current_centered).item()
+                        attr_sim = max(0.0, attr_sim_raw)
+
+                        combined_sim = (attr_sim * 0.9) + (struct_sim * 0.1)
+                        final_score = combined_sim * 100
+
+                        if is_male_prob > 0.4:
+                            final_score = final_score * (1 - is_male_prob)
+
+                        # Keep the absolute highest score
+                        if final_score > highest_score:
+                            highest_score = final_score
+                            best_match_path = path
+
+                    # 3. Render the Results
                     progress_bar.empty()
-                    status_text.success(f"✅ Match Found! We found a structural match.")
+                    status_text.success(f"✅ Match Found!")
 
                     st.divider()
-                    st.subheader("🎉 Your Best Match Found!")
+                    st.subheader(f"🎉 Your Best Match Found! ({highest_score:.1f}% Compatibility)")
 
                     match_img = Image.open(best_match_path).convert('RGB')
-                    st.image(match_img, caption=f"Structural Similarity Match: {os.path.basename(best_match_path)}",
-                             width='stretch')
-
+                    st.image(match_img, caption=f"Top Match: {os.path.basename(best_match_path)}", width='stretch')
                     st.balloons()
 
 with tab2:
@@ -198,22 +248,15 @@ with tab2:
 
                 cos = torch.nn.CosineSimilarity(dim=0)
 
-                # --- THE STRICT FIX ---
-                # 1. Landmark Math: Human faces are always ~0.95 similar.
-                # We subtract 0.95 so it ONLY rewards structural matches that are exceptionally close.
                 struct_sim_raw = cos(target_vector[-10:], torch.tensor(lands)).item()
                 struct_sim = max(0.0, (struct_sim_raw - 0.95) / 0.05)
 
-                # 2. Attribute Math: Remove the +1 padding. Use the raw correlation.
-                # If they have negative correlation, it clamps to 0%.
                 attr_sim_raw = cos(attr_target_centered, attr_current_centered).item()
                 attr_sim = max(0.0, attr_sim_raw)
 
-                # Calculate the final brutal score
                 combined_sim = (attr_sim * 0.99) + (struct_sim * 0.01)
                 final_score = combined_sim * 100
 
-                # Male Penalty
                 if is_male_prob > 0.4:
                     final_score = final_score * (1 - is_male_prob)
 
